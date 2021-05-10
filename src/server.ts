@@ -55,15 +55,20 @@ export class KeukboundServer extends cdk.Stack {
             memoryLimitMiB: 4096,
             logging,
         });
+        const fileSystem = new efs.FileSystem(this, "starbound-fs", {
+            vpc,
+            performanceMode: efs.PerformanceMode.MAX_IO,
+            fileSystemName: "starbound-fs",
+        });
         taskDefinition.addVolume({
             name: "starbound",
             efsVolumeConfiguration: {
-                fileSystemId: "starbound-fs",
+                fileSystemId: fileSystem.fileSystemId,
             },
         });
         hostContainer.addMountPoints({
             sourceVolume: "starbound",
-            containerPath: "/",
+            containerPath: "/steamcmd/starbound",
             readOnly: false,
         });
         const server = new ecs.Ec2Service(this, "server", {
