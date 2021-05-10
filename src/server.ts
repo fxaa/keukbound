@@ -22,7 +22,6 @@ export class KeukboundServer extends cdk.Stack {
             },
             vpc,
         });
-        const taskDefinition = new ecs.Ec2TaskDefinition(this, "task");
 
         const steamSecret = secrets.Secret.fromSecretNameV2(
             this,
@@ -32,6 +31,21 @@ export class KeukboundServer extends cdk.Stack {
 
         const logging = new ecs.AwsLogDriver({
             streamPrefix: "starbound",
+        });
+        const fileSystem = new efs.FileSystem(this, "starbound-fs", {
+            vpc,
+            performanceMode: efs.PerformanceMode.MAX_IO,
+            fileSystemName: "starbound-fs",
+        });
+        const taskDefinition = new ecs.Ec2TaskDefinition(this, "task", {
+            volumes: [
+                {
+                    name: "starbound",
+                    efsVolumeConfiguration: {
+                        fileSystemId: fileSystem.fileSystemId,
+                    },
+                },
+            ],
         });
         const hostContainer = taskDefinition.addContainer("game-host", {
             image: ecs.ContainerImage.fromRegistry(
@@ -54,17 +68,6 @@ export class KeukboundServer extends cdk.Stack {
             ],
             memoryLimitMiB: 4096,
             logging,
-        });
-        const fileSystem = new efs.FileSystem(this, "starbound-fs", {
-            vpc,
-            performanceMode: efs.PerformanceMode.MAX_IO,
-            fileSystemName: "starbound-fs",
-        });
-        taskDefinition.addVolume({
-            name: "starbound",
-            efsVolumeConfiguration: {
-                fileSystemId: fileSystem.fileSystemId,
-            },
         });
         hostContainer.addMountPoints({
             sourceVolume: "starbound",
