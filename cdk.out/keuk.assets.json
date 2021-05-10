@@ -1,0 +1,19 @@
+{
+  "version": "10.0.0",
+  "files": {
+    "9c17021cc487372a9d0466d50df1933e4f730ef7b082836c1f3bd6b845b1ad2b": {
+      "source": {
+        "path": "keuk.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "current_account-current_region": {
+          "bucketName": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}",
+          "objectKey": "9c17021cc487372a9d0466d50df1933e4f730ef7b082836c1f3bd6b845b1ad2b.json",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-file-publishing-role-${AWS::AccountId}-${AWS::Region}"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}
