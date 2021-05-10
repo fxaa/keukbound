@@ -5,6 +5,7 @@ import * as ecs from "monocdk/aws-ecs";
 import * as assets from "monocdk/aws-ecr-assets";
 import * as autoscaling from "monocdk/aws-autoscaling";
 import * as gamelift from "monocdk/aws-gamelift";
+import * as elb from "monocdk/aws-elasticloadbalancingv2";
 import * as secrets from "monocdk/aws-secretsmanager";
 import * as efs from "monocdk/aws-efs";
 
@@ -74,6 +75,7 @@ export class KeukboundServer extends cdk.Stack {
         const server = new ecs.Ec2Service(this, "server", {
             cluster,
             taskDefinition,
+            assignPublicIp: true,
         });
     }
 }
