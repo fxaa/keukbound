@@ -99,6 +99,9 @@ export class KeukboundServer extends cdk.Stack {
             circuitBreaker: {
                 rollback: false,
             },
+            minHealthyPercent: 50,
+            maxHealthyPercent: 200,
+            desiredCount: 1,
         });
         const nlb = new elb.NetworkLoadBalancer(this, "nlb", {
             vpc,
