@@ -44,6 +44,7 @@ export class KeukboundServer extends cdk.Stack {
                     },
                 },
             ],
+            networkMode: ecs.NetworkMode.AWS_VPC,
         });
         const hostContainer = taskDefinition.addContainer("game-host", {
             image: ecs.ContainerImage.fromRegistry(
