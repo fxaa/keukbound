@@ -76,7 +76,6 @@ export class KeukboundServer extends cdk.Stack {
         const server = new ecs.Ec2Service(this, "server", {
             cluster,
             taskDefinition,
-            assignPublicIp: true,
         });
         const nlb = new elb.NetworkLoadBalancer(this, "nlb", {
             vpc,
