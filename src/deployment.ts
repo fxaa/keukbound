@@ -21,8 +21,8 @@ export class KeukboundDeployer extends cdk.Stack {
         const starboundSource = new codepipeline.Artifact("StarboundSource");
         const sourceAction = new actions.GitHubSourceAction({
             actionName: "starbound-source",
-            owner: "Didstopia",
-            repo: "starbound-server",
+            owner: "fxaa",
+            repo: "keukbound",
             output: starboundSource,
             oauthToken: cdk.SecretValue.secretsManager("github/token"),
             branch: "main",
