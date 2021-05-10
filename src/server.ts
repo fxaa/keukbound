@@ -29,6 +29,11 @@ export class KeukboundServer extends cdk.Stack {
             "steam-secret",
             "steam/creds",
         );
+        const dockerSecret = secrets.Secret.fromSecretNameV2(
+            this,
+            "docker-secret",
+            "docker/token",
+        );
 
         const logging = new ecs.AwsLogDriver({
             streamPrefix: "starbound",
@@ -49,6 +54,9 @@ export class KeukboundServer extends cdk.Stack {
         const hostContainer = taskDefinition.addContainer("game-host", {
             image: ecs.ContainerImage.fromRegistry(
                 "didstopia/starbound-server",
+                {
+                    credentials: dockerSecret,
+                },
             ),
             secrets: {
                 STEAM_USERNAME: ecs.Secret.fromSecretsManager(
