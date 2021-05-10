@@ -6,6 +6,7 @@ import * as assets from "monocdk/aws-ecr-assets";
 import * as autoscaling from "monocdk/aws-autoscaling";
 import * as gamelift from "monocdk/aws-gamelift";
 import * as secrets from "monocdk/aws-secretsmanager";
+import * as efs from "monocdk/aws-efs";
 
 export class KeukboundServer extends cdk.Stack {
     constructor(parent: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -22,11 +23,16 @@ export class KeukboundServer extends cdk.Stack {
             vpc,
         });
         const taskDefinition = new ecs.Ec2TaskDefinition(this, "task");
+
         const steamSecret = secrets.Secret.fromSecretNameV2(
             this,
             "steam-secret",
             "steam/creds",
         );
+
+        const logging = new ecs.AwsLogDriver({
+            streamPrefix: "starbound",
+        });
         const hostContainer = taskDefinition.addContainer("game-host", {
             image: ecs.ContainerImage.fromRegistry(
                 "didstopia/starbound-server",
@@ -47,6 +53,18 @@ export class KeukboundServer extends cdk.Stack {
                 },
             ],
             memoryLimitMiB: 4096,
+            logging,
+        });
+        taskDefinition.addVolume({
+            name: "starbound",
+            efsVolumeConfiguration: {
+                fileSystemId: "starbound-fs",
+            },
+        });
+        hostContainer.addMountPoints({
+            sourceVolume: "starbound",
+            containerPath: "/",
+            readOnly: false,
         });
         const server = new ecs.Ec2Service(this, "server", {
             cluster,
