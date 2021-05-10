@@ -78,5 +78,26 @@ export class KeukboundServer extends cdk.Stack {
             taskDefinition,
             assignPublicIp: true,
         });
+        const nlb = new elb.NetworkLoadBalancer(this, "nlb", {
+            vpc,
+            internetFacing: true,
+        });
+        const target = new elb.NetworkTargetGroup(this, "target", {
+            port: 21025,
+            protocol: elb.Protocol.TCP,
+            targets: [
+                server.loadBalancerTarget({
+                    containerName: hostContainer.containerName,
+                    containerPort: 21025,
+                    protocol: ecs.Protocol.TCP,
+                }),
+            ],
+            vpc,
+        });
+        const listener = new elb.NetworkListener(this, "listener", {
+            loadBalancer: nlb,
+            port: 21025,
+        });
+        listener.addTargetGroups("starbound", target);
     }
 }
