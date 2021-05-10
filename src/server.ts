@@ -96,6 +96,9 @@ export class KeukboundServer extends cdk.Stack {
             cluster,
             taskDefinition,
             securityGroups: [sg],
+            circuitBreaker: {
+                rollback: false,
+            },
         });
         const nlb = new elb.NetworkLoadBalancer(this, "nlb", {
             vpc,
