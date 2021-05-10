@@ -14,6 +14,17 @@ export class KeukboundServer extends cdk.Stack {
         super(parent, id);
 
         const vpc = new ec2.Vpc(this, "vpc");
+        const sg = new ec2.SecurityGroup(this, "sg", {
+            vpc,
+            allowAllOutbound: true,
+            securityGroupName: "starbound-connection",
+            description: "group used by starbound connections",
+        });
+        sg.addIngressRule(
+            ec2.Peer.anyIpv4(),
+            ec2.Port.tcp(21025),
+            "allow clients inbound through 21025",
+        );
         const cluster = new ecs.Cluster(this, "cluster", {
             capacity: {
                 instanceType: ec2.InstanceType.of(
@@ -84,6 +95,7 @@ export class KeukboundServer extends cdk.Stack {
         const server = new ecs.Ec2Service(this, "server", {
             cluster,
             taskDefinition,
+            securityGroups: [sg],
         });
         const nlb = new elb.NetworkLoadBalancer(this, "nlb", {
             vpc,
