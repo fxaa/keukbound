@@ -1,19 +1,24 @@
 import * as cdk from "monocdk";
 import * as ec2 from "monocdk/aws-ec2";
-import * as patterns from "monocdk/aws-ecs-patterns";
 import * as ecs from "monocdk/aws-ecs";
-import * as assets from "monocdk/aws-ecr-assets";
 import * as autoscaling from "monocdk/aws-autoscaling";
-import * as gamelift from "monocdk/aws-gamelift";
-import * as elb from "monocdk/aws-elasticloadbalancingv2";
 import * as secrets from "monocdk/aws-secretsmanager";
-import * as efs from "monocdk/aws-efs";
 
 export class KeukboundServer extends cdk.Stack {
     constructor(parent: cdk.Construct, id: string, props?: cdk.StackProps) {
         super(parent, id);
 
-        const vpc = new ec2.Vpc(this, "vpc");
+        const vpc = new ec2.Vpc(this, "vpc", {
+            subnetConfiguration: [
+                {
+                    name: "public-starbound",
+                    subnetType: ec2.SubnetType.PUBLIC,
+                },
+            ],
+            enableDnsSupport: true,
+            enableDnsHostnames: true,
+        });
+
         const sg = new ec2.SecurityGroup(this, "sg", {
             vpc,
             allowAllOutbound: true,
@@ -25,12 +30,25 @@ export class KeukboundServer extends cdk.Stack {
             ec2.Port.tcp(21025),
             "allow clients inbound through 21025",
         );
+        sg.addIngressRule(
+            ec2.Peer.anyIpv4(),
+            ec2.Port.tcpRange(27000, 27037),
+            "allow all inbound steam traffic",
+        );
         const cluster = new ecs.Cluster(this, "cluster", {
             capacity: {
                 instanceType: ec2.InstanceType.of(
                     ec2.InstanceClass.C5,
                     ec2.InstanceSize.XLARGE,
                 ),
+                associatePublicIpAddress: true,
+                instanceMonitoring: autoscaling.Monitoring.BASIC,
+                healthCheck: autoscaling.HealthCheck.ec2({
+                    grace: cdk.Duration.minutes(5),
+                }),
+                vpcSubnets: {
+                    subnetType: ec2.SubnetType.PUBLIC,
+                },
             },
             vpc,
         });
@@ -60,7 +78,7 @@ export class KeukboundServer extends cdk.Stack {
                     },
                 },
             ],
-            networkMode: ecs.NetworkMode.AWS_VPC,
+            networkMode: ecs.NetworkMode.HOST,
         });
         const hostContainer = taskDefinition.addContainer("game-host", {
             image: ecs.ContainerImage.fromRegistry(
@@ -95,7 +113,6 @@ export class KeukboundServer extends cdk.Stack {
         const server = new ecs.Ec2Service(this, "server", {
             cluster,
             taskDefinition,
-            securityGroups: [sg],
             circuitBreaker: {
                 rollback: false,
             },
@@ -103,26 +120,5 @@ export class KeukboundServer extends cdk.Stack {
             maxHealthyPercent: 200,
             desiredCount: 1,
         });
-        const nlb = new elb.NetworkLoadBalancer(this, "nlb", {
-            vpc,
-            internetFacing: true,
-        });
-        const target = new elb.NetworkTargetGroup(this, "target", {
-            port: 21025,
-            protocol: elb.Protocol.TCP,
-            targets: [
-                server.loadBalancerTarget({
-                    containerName: hostContainer.containerName,
-                    containerPort: 21025,
-                    protocol: ecs.Protocol.TCP,
-                }),
-            ],
-            vpc,
-        });
-        const listener = new elb.NetworkListener(this, "listener", {
-            loadBalancer: nlb,
-            port: 21025,
-        });
-        listener.addTargetGroups("starbound", target);
     }
 }
