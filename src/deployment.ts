@@ -2,7 +2,6 @@ import * as cdk from "monocdk";
 import * as pipelines from "monocdk/pipelines";
 import * as codepipeline from "monocdk/aws-codepipeline";
 import * as actions from "monocdk/aws-codepipeline-actions";
-import * as deploy from "monocdk/aws-codedeploy";
 import { KeukboundStage } from "./stage";
 
 export interface KeukboundDeployerProps extends cdk.StackProps {}
