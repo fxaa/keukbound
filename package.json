@@ -10,14 +10,14 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "monocdk": "1.103.0",
+        "@typescript-eslint/eslint-plugin": "4.22.1",
         "aws-cdk": "1.103.0",
         "constructs": "^3.3.75",
-        "typescript": "^4.2.4",
         "eslint": "7.26.0",
-        "@typescript-eslint/eslint-plugin": "4.22.1",
         "eslint-plugin-prettier": "3.4.0",
+        "monocdk": "1.103.0",
         "prettier": "2.3.0",
-        "ts-node": "9.1.1"
+        "ts-node": "9.1.1",
+        "typescript": "^4.2.4"
     }
 }
